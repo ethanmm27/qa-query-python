@@ -126,3 +126,24 @@ def findUsers(builddate, col_one, col_two):
     write_report("List of all users that did not submit a report on " + builddate,
                  finalList, "Did_Not_Submit.txt")
 
+def build_parser():
+    parser = argparse.ArgumentParser(description='Parse and input data from a QA CSV into a database.')
+
+    parser.add_argument('--load', action='store_true', dest='load',
+                        help='Clear the collections and load the spreadsheets into the database first.')
+    parser.add_argument('--file-one', default="EG4-DBDump_fall2026_c1.xlsx", dest='file_one',
+                        help='Path to the first Excel file.')
+    parser.add_argument('--file-two', default="EG4-DBDump_fall2026_c2.xlsx", dest='file_two',
+                        help='Path to the second Excel file.')
+
+    parser.add_argument('--blocker', action='store_true', dest='blocker',
+                        help='Lists all blocker bugs.')
+    parser.add_argument('--user', type=str,
+                        help='Lists all work done by a user.')
+    parser.add_argument('--repeatable', action='store_true', dest='repeatable',
+                        help='Lists all repeatable bugs (use together with --blocker).')
+    parser.add_argument('--builddate', type=str,
+                        help='Lists all work done on a specific date.')
+    parser.add_argument('--reportedUsers', action='store_true', dest='reportedUsers',
+                        help='Lists all users who did not do work on a specific date (use with --builddate).')
+    return parser
