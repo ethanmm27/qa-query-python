@@ -39,3 +39,26 @@ def readin_database(file, collection):
         mylist.append(row)
     if mylist:
         collection.insert_many(mylist)
+
+def get_all_reports(col_one, col_two):
+    return list(col_one.aggregate([{"$unionWith": {"coll": col_two.name}}]))
+
+def is_yes(value):
+    return isinstance(value, str) and value.lower().strip() in ("yes", "y")
+
+def clean_name(value):
+    if value is None or pd.isna(value):
+        return None
+    if isinstance(value, str):
+        value = value.strip()
+    return value if value != "" else None
+
+def write_report(header, results, filename):
+    with open(filename, "w") as file:
+        file.write(header + ":\n")
+        file.write("Total entries: ")
+        file.write(str(len(results)))
+        file.write("\n")
+        file.write("\n")
+        file.write(json_util.dumps(results, indent=4))
+    print("Total entries:", len(results))
