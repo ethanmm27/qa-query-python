@@ -62,3 +62,67 @@ def write_report(header, results, filename):
         file.write("\n")
         file.write(json_util.dumps(results, indent=4))
     print("Total entries:", len(results))
+
+def blocker(col_one, col_two):
+    mylist = []
+    for a in get_all_reports(col_one, col_two):
+        if is_yes(a.get("Blocker?")):
+            mylist.append(a)
+    write_report("List of all blocker bugs", mylist, "Blocker_Bugs_List.txt")
+
+def user(user, col_one, col_two):
+    mylist = []
+    for a in get_all_reports(col_one, col_two):
+        value = a.get("Test Owner")
+        if isinstance(value, str) and value.lower().strip() == user.lower().strip():
+            mylist.append(a)
+    if mylist:
+        fieldnames = []
+        for entry in mylist:
+            for key in entry.keys():
+                if key not in fieldnames:
+                    fieldnames.append(key)
+        with open('Final_CSV.csv', 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(mylist)
+    write_report("List of all work done by " + user, mylist, "Work_Done_By_User.txt")
+
+def repeatable_and_blocker(col_one, col_two):
+    mylist = []
+    for a in get_all_reports(col_one, col_two):
+        if is_yes(a.get("Repeatable?")) and is_yes(a.get("Blocker?")):
+            mylist.append(a)
+    write_report("List of all repeatable and blocker bugs", mylist, "Repeatable_And_Blocker.txt")
+
+def builddate(builddate, col_one, col_two):
+    mylist = []
+    builddatetime = pd.to_datetime(builddate)
+    for a in get_all_reports(col_one, col_two):
+        value = a.get("Build #")
+        if isinstance(value, datetime) and value == builddatetime:
+            mylist.append(a)
+    write_report("List of all reports on build date " + builddate, mylist, "Build_Date_Reports.txt")
+
+def findUsers(builddate, col_one, col_two):
+    allUsers = []
+    allUsersOnDate = []
+    finalList = []
+    builddatetime = pd.to_datetime(builddate)
+    union_col = get_all_reports(col_one, col_two)
+    for a in union_col:
+        value = clean_name(a.get("Test Owner"))
+        if value is not None and value not in allUsers:
+            allUsers.append(value)
+    for x in union_col:
+        date = x.get("Build #")
+        if isinstance(date, datetime) and date == builddatetime:
+            owner = clean_name(x.get("Test Owner"))
+            if owner is not None and owner not in allUsersOnDate:
+                allUsersOnDate.append(owner)
+    for y in allUsers:
+        if y not in allUsersOnDate:
+            finalList.append(y)
+    write_report("List of all users that did not submit a report on " + builddate,
+                 finalList, "Did_Not_Submit.txt")
+
