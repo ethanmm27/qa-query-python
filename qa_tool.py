@@ -147,3 +147,34 @@ def build_parser():
     parser.add_argument('--reportedUsers', action='store_true', dest='reportedUsers',
                         help='Lists all users who did not do work on a specific date (use with --builddate).')
     return parser
+
+def main():
+    parser = build_parser()
+    args = parser.parse_args()
+
+    mydb = get_database()
+    col_one = mydb["FileOne"]
+    col_two = mydb["FileTwo"]
+
+    if args.load:
+        col_one.delete_many({})
+        col_two.delete_many({})
+        readin_database(pd.read_excel(args.file_one, header=0), col_one)
+        readin_database(pd.read_excel(args.file_two, header=0), col_two)
+        print("Data loaded.")
+
+    if args.repeatable and args.blocker:
+        repeatable_and_blocker(col_one, col_two)
+    elif args.blocker:
+        blocker(col_one, col_two)
+    elif args.user:
+        user(args.user, col_one, col_two)
+    elif args.builddate and args.reportedUsers:
+        findUsers(args.builddate, col_one, col_two)
+    elif args.builddate:
+        builddate(args.builddate, col_one, col_two)
+    elif not args.load:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()
